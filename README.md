@@ -1,1 +1,1 @@
-# Fashion-Image-Classification-Using-Deep-Learning
+# Fashion Image Classification Using Deep Learning
