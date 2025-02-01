@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Fashion Classifier</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 0 20px;
+            background-color: #f5f5f5;
+        }
+
+        .container {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .upload-section {
+            border: 2px dashed #ddd;
+            padding: 2rem;
+            text-align: center;
+            margin-bottom: 1.5rem;
+            border-radius: 8px;
+            transition: border-color 0.3s;
+        }
+
+        .upload-section:hover {
+            border-color: #3498db;
+        }
+
+        .custom-file-input {
+            display: inline-block;
+            background: #3498db;
+            color: white;
+            padding: 0.8rem 1.5rem;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .custom-file-input:hover {
+            background: #2980b9;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        button[type="submit"] {
+            background: #27ae60;
+            color: white;
+            border: none;
+            padding: 0.8rem 2rem;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background 0.3s;
+            width: 100%;
+            margin-top: 1rem;
+        }
+
+        button[type="submit"]:hover {
+            background: #219a52;
+        }
+
+        #result {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            border-radius: 8px;
+            background: #f8f9fa;
+            min-height: 100px;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            border: 3px solid rgba(0,0,0,0.1);
+            border-radius: 50%;
+            border-top-color: #3498db;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .result-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .result-card h3 {
+            margin-top: 0;
+            color: #2c3e50;
+        }
+
+        .confidence-bar {
+            height: 10px;
+            background: #eee;
+            border-radius: 5px;
+            margin: 1rem 0;
+            overflow: hidden;
+        }
+
+        .confidence-fill {
+            height: 100%;
+            background: #3498db;
+            transition: width 0.5s ease-out;
+        }
+
+        .error {
+            color: #e74c3c;
+            padding: 1rem;
+            background: #f8d7da;
+            border-radius: 5px;
+            border: 1px solid #f5c6cb;
+        }
+
+        .image-preview {
+            max-width: 100%;
+            height: auto;
+            margin-top: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .result-container {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+            margin-top: 2rem;
+        }
+
+        .result-container img {
+            max-width: 200px;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Fashion Image Classifier</h1>
+        
+        <div class="upload-section">
+            <form id="uploadForm" enctype="multipart/form-data">
+                <label class="custom-file-input">
+                    Choose Image
+                    <input type="file" name="file" id="fileInput" accept=".jpg,.jpeg,.png">
+                </label>
+                <div id="fileName" style="margin: 1rem 0; color: #666;"></div>
+                <button type="submit">Analyze Image</button>
+            </form>
+        </div>
+
+        <div id="result"></div>
+    </div>
+
+    <script>
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            const fileName = document.getElementById('fileName');
+            if (this.files[0]) {
+                fileName.textContent = `Selected file: ${this.files[0].name}`;
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const resultDiv = document.getElementById('result');
+                    resultDiv.innerHTML = `
+                        <div class="result-container">
+                            <img src="${event.target.result}" alt="Uploaded Image" class="image-preview">
+                            <div id="predictionResult"></div>
+                        </div>
+                    `;
+                };
+                reader.readAsDataURL(this.files[0]);
+            } else {
+                fileName.textContent = '';
+                document.getElementById('result').innerHTML = '';
+            }
+        });
+
+        document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const resultDiv = document.getElementById('predictionResult');
+            resultDiv.innerHTML = '<div class="loading"></div>';
+            
+            const fileInput = document.getElementById('fileInput');
+            if (!fileInput.files[0]) {
+                resultDiv.innerHTML = '<div class="error">Please select a file first!</div>';
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+            
+            try {
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    resultDiv.innerHTML = `<div class="error">Error: ${data.error || 'Unknown error'}</div>`;
+                    return;
+                }
+
+                resultDiv.innerHTML = `
+                    <div class="result-card">
+                        <h3>Classification Result</h3>
+                        <p>Category: <strong>${data['class']}</strong></p>
+                        <div class="confidence-bar">
+                            <div class="confidence-fill" style="width: ${data.confidence * 100}%"></div>
+                        </div>
+                        <p>Confidence: <strong>${(data.confidence * 100).toFixed(1)}%</strong></p>
+                    </div>
+                `;
+
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+                console.error('Error:', error);
+            }
+        });
+    </script>
+</body>
+</html>
