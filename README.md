@@ -7,7 +7,7 @@ This project focuses on fashion image classification using deep learning, levera
 - Data Augmentation: Rotation, zoom, brightness adjustments, and more using ImageDataGenerator
 - Training Optimizations: Learning rate scheduling, early stopping, and best model checkpointing
 - Performance Evaluation: Accuracy and loss visualization using Matplotlib
-- Deployment: FastAPI-based RESTful API containerized with Docker for local inference
+- Deployment: FastAPI-based RESTful API containerized with Docker for local inference.
 
 # Technologies Used:
 - Python, TensorFlow/Keras, OpenCV, NumPy, Pandas, Seaborn, Matplotlib
