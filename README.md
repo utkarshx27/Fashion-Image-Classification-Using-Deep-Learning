@@ -12,7 +12,7 @@ This project focuses on fashion image classification using deep learning, levera
 # Technologies Used:
 - Python, TensorFlow/Keras, OpenCV, NumPy, Pandas, Seaborn, Matplotlib
 - FastAPI for model serving
-- Docker for containerized deployment
+- Docker for containerized deployment.
 
 ## UI
 ![Test Image](https://raw.githubusercontent.com/utkarshx27/Fashion-Image-Classification-Using-Deep-Learning/e12e21757a9e84ea4ce421cce3cbebae06636157/images/img1.png)
